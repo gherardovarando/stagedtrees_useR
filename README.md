@@ -64,7 +64,7 @@ Here are some captions of how your presentation would looks like:
 </p>
 
 
-## Also, you can include some code and results:
+## Also, you can show some code and results:
 
 <p align="center">
 <img src="img/plots.png"
@@ -84,7 +84,7 @@ Here are some captions of how your presentation would looks like:
 </p>
 
 
-## Please, include Alternative text to your figures and make them screen-reader friendly.   
+## Please, add Alternative text to your figures and make them screen-reader friendly.   
 
 
 If this is your first time using alternative text, this [article](https://www.techsmith.com/blog/how-to-create-alternative-text-for-images-for-accessibility-and-seo/) could be helpful. Also, if you want to ensure that your alt-text is clear, you can activate a screen reader like [VoiceOver](https://webaim.org/articles/voiceover/), [NVDA](https://webaim.org/articles/nvda/) or [JAWS](https://webaim.org/articles/jaws/) and listen how your alternative text will sound. 
