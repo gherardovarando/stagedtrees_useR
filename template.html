@@ -4,10 +4,9 @@
     <title>Your title</title>
     <meta charset="utf-8" />
     <meta name="author" content="Your name" />
+    <script src="libs/header-attrs-2.6/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/useR.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/useR-fonts.css" rel="stylesheet" />
-    <link href="libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
-    <script src="libs/anchor-sections-1.0/anchor-sections.js"></script>
   </head>
   <body>
     <textarea id="source">
@@ -79,6 +78,16 @@ fig_grid2 &lt;- cvd_grid(fig2)
 
 
 &lt;img src="template_files/figure-html/unnamed-chunk-6-1.png" width="48%" /&gt;&lt;img src="template_files/figure-html/unnamed-chunk-6-2.png" width="48%" /&gt;
+
+---
+
+## Do not forget to include alt-text to your figures!
+
+Knitr (version &gt;= 1.31) have a new feature to add alt-text to your figures. Just add fig.alt = "Your alt-text” in the chunk options.
+
+&lt;img src="template_files/figure-html/unnamed-chunk-7-1.png" title="Two ggplot panels, comparing default ggplot2 colors versus the ggplot2 result using viridis color palette. Each panel shows three superposed color-filled histograms. The default scale uses the colors salmon, light green and light blue, but viridis scale uses purple, aquamarine and yellow, which gives a better contrast." alt="Two ggplot panels, comparing default ggplot2 colors versus the ggplot2 result using viridis color palette. Each panel shows three superposed color-filled histograms. The default scale uses the colors salmon, light green and light blue, but viridis scale uses purple, aquamarine and yellow, which gives a better contrast." width="40%" /&gt;&lt;img src="template_files/figure-html/unnamed-chunk-7-2.png" title="Two ggplot panels, comparing default ggplot2 colors versus the ggplot2 result using viridis color palette. Each panel shows three superposed color-filled histograms. The default scale uses the colors salmon, light green and light blue, but viridis scale uses purple, aquamarine and yellow, which gives a better contrast." alt="Two ggplot panels, comparing default ggplot2 colors versus the ggplot2 result using viridis color palette. Each panel shows three superposed color-filled histograms. The default scale uses the colors salmon, light green and light blue, but viridis scale uses purple, aquamarine and yellow, which gives a better contrast." width="40%" /&gt;
+
+
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
