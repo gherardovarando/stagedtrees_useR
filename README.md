@@ -88,6 +88,11 @@ Here are some captions of how your presentation would looks like:
 
 Knitr (version >= 1.31) have a new feature to add alt-text to your figures. Just add fig.alt = "Your alt-text” in the chunk options.
 
+```{r, echo = FALSE, fig-show = “hold”, out.width = “40%“, fig.alt = “Two ggplot panels, comparing deafult ggplot2 colors versus the ggplot2 result using viridis color palette, Each panel shows three superposed color-filled histograms. The default scale uses the colors salmon, light green and light blue, but viridis scale uses purple, aquamarine and yellow, which gives a better contrast.“}
+fig
+fig2
+```
+
 <p align="center">
 <img src="img/fig_alt.png"
      alt="An example R markdown chunk that shows how to use the new option fig.alt. The R chunk options used in this example are: echo=FALSE, fig.show='hold', out.width='40%', fig.alt='Two ggplot panels, comparing default ggplot2 colors versus the ggplot2 result using viridis color palette. Each panel shows three superposed color-filled histograms. The default scale uses the colors salmon, light green and light blue, but viridis scale uses purple, aquamarine and yellow, which gives a better contrast.' "
