@@ -340,7 +340,7 @@ model &lt;- full(simLefrancq2021) |&gt; stages_bhc(scope = c("Age")) |&gt;
 ## 'log Lik.' -32011.78 (df=17)
 ```
 .center[
-![](stagedtrees_useR2021_files/figure-html/unnamed-chunk-19-1.png)&lt;!-- --&gt;
+&lt;img src="stagedtrees_useR2021_files/figure-html/unnamed-chunk-19-1.png" title="Plot of the staged event tree obtained for the simulated Lefrancq 2021 data. The order of the variables is: Sex, Age, ICU, Death." alt="Plot of the staged event tree obtained for the simulated Lefrancq 2021 data. The order of the variables is: Sex, Age, ICU, Death."  /&gt;
 ]
 
 ---
@@ -434,7 +434,7 @@ barplot(model, var = "Death", col = \(s) viridis(length(s)),
         legend.text = TRUE, main = "Death probability")
 ```
 
-&lt;img src="stagedtrees_useR2021_files/figure-html/unnamed-chunk-24-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="stagedtrees_useR2021_files/figure-html/unnamed-chunk-24-1.png" title="Plot of the staged event tree for the simulated Lefrancq 2021 data on the left and bar plot for the probabilities of death given the history of the patient for the three stages learnt." alt="Plot of the staged event tree for the simulated Lefrancq 2021 data on the left and bar plot for the probabilities of death given the history of the patient for the three stages learnt." style="display: block; margin: auto;" /&gt;
 
 ---
 

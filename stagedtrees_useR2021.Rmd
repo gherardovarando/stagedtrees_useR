@@ -22,7 +22,7 @@ class: chapter-slide
 
 ## Event Trees 
 .pull-left[
-```{r, echo=FALSE, out.width="100%", alt.text = "ahahghaghga"}
+```{r, echo=FALSE, out.width="100%", alt.text = "Plot of an event tree for the Titanic data, for variables Class, Age and Survived."}
 plot(indep(Titanic, order = c("Class", "Age", "Survived")), cex_nodes = 3, pch = 1, cex_label_edges = 2, 
      main = "Event tree for the Titanic data")
 ```
@@ -38,7 +38,7 @@ plot(indep(Titanic, order = c("Class", "Age", "Survived")), cex_nodes = 3, pch =
 
 .pull-left[
 
-```{r, echo=FALSE, out.width="100%", alt.text = "ahahghaghga"}
+```{r, echo=FALSE, out.width="100%", alt.text = "Plot of a staged event tree for the Titanic data, similar to the event tree but now with colored nodes."}
 model <- stages_bhc(full(Titanic, order = c("Class", "Age", "Survived")))
 plot(model, cex_nodes = 3, cex_label_edges = 2, 
      col = \(x) viridis(length(x), option = "D"),
@@ -295,7 +295,7 @@ model <- full(simLefrancq2021) |> stages_bhc(scope = c("Age")) |>
     stages_kmeans(scope = c("ICU", "Death"), k = 3) |> print()
 ```
 .center[
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.alt="Plot of the staged event tree obtained for the simulated Lefrancq 2021 data. The order of the variables is: Sex, Age, ICU, Death." }
 plot(model, cex_nodes = 3, cex_label_edges = 1.5, 
      col = \(x) viridis(length(x), option = "D"))
 ```
@@ -350,7 +350,7 @@ class: chapter-slide
 
 ### Plots and bar plots 
 
-```{r, fig.align='center', fig.width=10, fig.height =5}
+```{r, fig.align='center', fig.width=10, fig.height =5, fig.alt="Plot of the staged event tree for the simulated Lefrancq 2021 data on the left and bar plot for the probabilities of death given the history of the patient for the three stages learnt."}
 par(mfrow = c(1,2))
 plot(model, col = \(s) viridis(length(s)))
 barplot(model, var = "Death", col = \(s) viridis(length(s)), 
