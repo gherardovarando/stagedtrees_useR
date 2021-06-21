@@ -50,7 +50,7 @@ class: chapter-slide
 * `\(X = (X_1, \ldots, X_n)\)` categorical
 * `\(P(X) = \prod_{i=1}^n P(X_i| X_{1:(i-1)})\)`
 * such event tree is called `\(X\)`-compatible 
-* if two nodes **at the same depth** have the same color then 
+* if two nodes **at the same depth** are of the same color then 
 the associated conditional probabilities are equal `\(P(\texttt{Survived}|\texttt{Crew, Adult})\)` 
 `\(= P(\texttt{Survived}|\texttt{3d, Adult})\)`
 * chain event graphs are an equivalent, (sometimes) more compact, 
@@ -220,7 +220,7 @@ class: chapter-slide
 
 We consider data simulated from a full staged event tree manually specified&lt;sup&gt;1&lt;/sup&gt;
 using the conditional probabilities from Lefrancq et al. (2021) describing
-ICU admission probabilities and survival rates for covid patients in France
+ICU admission probabilities and survival rates for SARS-CoV-2 patients in France
 conditional on age and sex. An event tree with order `Sex`, `Age`, `ICU`, 
 `Death` naturally describes the data.
 
@@ -328,10 +328,12 @@ stages_kmeans(full_model, k = 3, algorithm = "Hartigan-Wong")
 
 ---
 
+Most of the functions play nicely with the pipe operator `|&gt;` 
+
 
 ```r
-model &lt;- full(simLefrancq2021) |&gt; stages_bhc(scope = c("Age")) |&gt;
-    stages_kmeans(scope = c("ICU", "Death"), k = 3) |&gt; print()
+full(simLefrancq2021) |&gt; stages_bhc(scope = c("Age")) |&gt;
+    stages_kmeans(scope = c("ICU", "Death"), k = 3)
 ```
 
 ```
@@ -339,9 +341,17 @@ model &lt;- full(simLefrancq2021) |&gt; stages_bhc(scope = c("Age")) |&gt;
 ## Sex[2] -&gt; Age[6] -&gt; ICU[2] -&gt; Death[2]  
 ## 'log Lik.' -32011.78 (df=17)
 ```
-.center[
-&lt;img src="stagedtrees_useR2021_files/figure-html/unnamed-chunk-19-1.png" title="Plot of the staged event tree obtained for the simulated Lefrancq 2021 data. The order of the variables is: Sex, Age, ICU, Death." alt="Plot of the staged event tree obtained for the simulated Lefrancq 2021 data. The order of the variables is: Sex, Age, ICU, Death."  /&gt;
-]
+
+
+```r
+model &lt;- stages_bhc(full_model) |&gt; stndnaming() |&gt; print()
+```
+
+```
+## Staged event tree (fitted) 
+## Sex[2] -&gt; Age[6] -&gt; ICU[2] -&gt; Death[2]  
+## 'log Lik.' -31921.26 (df=22)
+```
 
 ---
 
@@ -352,7 +362,8 @@ Silander and Leong (2013).
 
 
 ```r
-search_best(simLefrancq2021, alg = stages_bhc)
+model1 &lt;- search_best(simLefrancq2021, alg = stages_bhc)
+model1
 ```
 
 ```
@@ -434,7 +445,7 @@ barplot(model, var = "Death", col = \(s) viridis(length(s)),
         legend.text = TRUE, main = "Death probability")
 ```
 
-&lt;img src="stagedtrees_useR2021_files/figure-html/unnamed-chunk-24-1.png" title="Plot of the staged event tree for the simulated Lefrancq 2021 data on the left and bar plot for the probabilities of death given the history of the patient for the three stages learnt." alt="Plot of the staged event tree for the simulated Lefrancq 2021 data on the left and bar plot for the probabilities of death given the history of the patient for the three stages learnt." style="display: block; margin: auto;" /&gt;
+&lt;img src="stagedtrees_useR2021_files/figure-html/unnamed-chunk-24-1.png" title="On the left plot of the staged event tree for the simulated Lefrancq 2021 data. On the right the bar plot for the probabilities of death given the history of the patient for the three stages learnt." alt="On the left plot of the staged event tree for the simulated Lefrancq 2021 data. On the right the bar plot for the probabilities of death given the history of the patient for the three stages learnt." style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -461,21 +472,17 @@ hamming_stages(model, model2)
 ```
 
 ```
-## [1] 13
+## [1] 18
 ```
 
 
 ```r
-res &lt;- inclusions_stages(model, model2) 
-res$ICU
-```
+## not evaluated because 
+## of lack of space
 
-```
-##   model    model2
-## 1     2  &lt;      2
-## 2     1 !=      2
-## 4     1 !=      1
-## 8     3  &lt;      1
+inclusions_stages(model, model2) 
+
+diff_stages(model, model2)
 ```
 ]
 
@@ -485,7 +492,7 @@ res$ICU
 ## NEW in v2.2.0
 ## context specific 
 ## interventional discrepancy
-cid(model, model2)$cid
+cid(model, model1)$cid
 ```
 
 ```
@@ -519,24 +526,24 @@ prob(model, c(ICU = "yes"),
 ```
 
 ```
-## [1] 0.2399546
+## [1] 0.2017673
 ```
 ]
 
 .pull-right[
 
 ```r
-confint(model, "ICU")
+confint(model, "ICU") |&gt; head()
 ```
 
 ```
-##               2.5 %    97.5 %
-## ICU=yes|2 0.0445125 0.0599886
-## ICU=no|2  0.9400114 0.9554875
-## ICU=yes|1 0.1663329 0.1929298
-## ICU=no|1  0.8070702 0.8336671
-## ICU=yes|3 0.2811031 0.3108350
-## ICU=no|3  0.6891650 0.7188969
+##                2.5 %     97.5 %
+## ICU=yes|1 0.09661057 0.14655053
+## ICU=no|1  0.85344947 0.90338943
+## ICU=yes|2 0.17294559 0.20214545
+## ICU=no|2  0.79785455 0.82705441
+## ICU=yes|3 0.02323431 0.04090181
+## ICU=no|3  0.95909819 0.97676569
 ```
 ]
 
@@ -565,7 +572,7 @@ BIC(model, model2)
 
 ```
 ##        df      BIC
-## model  17 64180.13
+## model  22 64045.14
 ## model2 15 64547.86
 ```
 
@@ -574,7 +581,7 @@ logLik(model)
 ```
 
 ```
-## 'log Lik.' -32011.78 (df=17)
+## 'log Lik.' -31921.26 (df=22)
 ```
 
 ```r
@@ -588,15 +595,35 @@ lr_test(join_stages(model, "ICU", "1", "2"), model)
 ## Model 1: join_stages(model, "ICU", "1", "2")
 ## Model 2: model
 ##   #Df LogLik Df  Chisq Pr(&gt;Chisq)    
-## 1  16 -32144                         
-## 2  17 -32012  1 265.12  &lt; 2.2e-16 ***
+## 1  21 -31930                         
+## 2  22 -31921  1 17.193  3.376e-05 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 ---
 
+.center[
+### thank you for your attention!
+]
+
+`stagedtrees` package is available on [CRAN](https://cran.r-project.org/package=stagedtrees) and [github](https://github.com/gherardovarando/stagedtrees)
+under MIT license
+
+[![stagedtrees](https://www.r-pkg.org/badges/version/stagedtrees)](https://cran.r-project.org/package=stagedtrees)
+[![Build Status](https://travis-ci.com/gherardovarando/stagedtrees.svg?branch=main)](https://travis-ci.com/gherardovarando/stagedtrees)
+  [![R-CMD-check](https://github.com/gherardovarando/stagedtrees/workflows/R-CMD-check/badge.svg)](https://github.com/gherardovarando/stagedtrees/actions)
+ [![Coverage status](https://codecov.io/gh/gherardovarando/stagedtrees/branch/master/graph/badge.svg)](https://codecov.io/github/gherardovarando/stagedtrees?branch=main)
+ [![](https://cranlogs.r-pkg.org/badges/stagedtrees)](https://cran.r-project.org/package=stagedtrees)
 
 
+
+#### preprint 
+
+&lt;small&gt;
+F Carli, M Leonelli, E Riccomagno, G Varando, 
+_The R Package stagedtrees for Structural Learning of Stratified Staged Trees_, 
+2020 https://arxiv.org/abs/2004.06459
+&lt;/small&gt;
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>

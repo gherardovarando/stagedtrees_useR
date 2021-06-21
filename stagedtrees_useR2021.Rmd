@@ -52,7 +52,7 @@ plot(model, cex_nodes = 3, cex_label_edges = 2,
 * $X = (X_1, \ldots, X_n)$ categorical
 * $P(X) = \prod_{i=1}^n P(X_i| X_{1:(i-1)})$
 * such event tree is called $X$-compatible 
-* if two nodes **at the same depth** have the same color then 
+* if two nodes **at the same depth** are of the same color then 
 the associated conditional probabilities are equal $P(\texttt{Survived}|\texttt{Crew, Adult})$ 
 $= P(\texttt{Survived}|\texttt{3d, Adult})$
 * chain event graphs are an equivalent, (sometimes) more compact, 
@@ -240,7 +240,7 @@ simLefrancq2021 <- sample_from(data_model, 10000)
 
 We consider data simulated from a full staged event tree manually specified<sup>1</sup>
 using the conditional probabilities from Lefrancq et al. (2021) describing
-ICU admission probabilities and survival rates for covid patients in France
+ICU admission probabilities and survival rates for SARS-CoV-2 patients in France
 conditional on age and sex. An event tree with order `Sex`, `Age`, `ICU`, 
 `Death` naturally describes the data.
 
@@ -290,16 +290,16 @@ stages_kmeans(full_model, k = 3, algorithm = "Hartigan-Wong")
 
 ---
 
+Most of the functions play nicely with the pipe operator `|>` 
+
 ```{r}
-model <- full(simLefrancq2021) |> stages_bhc(scope = c("Age")) |>
-    stages_kmeans(scope = c("ICU", "Death"), k = 3) |> print()
+full(simLefrancq2021) |> stages_bhc(scope = c("Age")) |>
+    stages_kmeans(scope = c("ICU", "Death"), k = 3)
 ```
-.center[
-```{r, echo = FALSE, fig.alt="Plot of the staged event tree obtained for the simulated Lefrancq 2021 data. The order of the variables is: Sex, Age, ICU, Death." }
-plot(model, cex_nodes = 3, cex_label_edges = 1.5, 
-     col = \(x) viridis(length(x), option = "D"))
+
+```{r}
+model <- stages_bhc(full_model) |> stndnaming() |> print()
 ```
-]
 
 ---
 
@@ -309,7 +309,8 @@ Implementation of the dynamic programming approach in
 Silander and Leong (2013).
 
 ```{r}
-search_best(simLefrancq2021, alg = stages_bhc)
+model1 <- search_best(simLefrancq2021, alg = stages_bhc)
+model1
 ```
 
 plus a simple greedy heuristic
@@ -350,7 +351,7 @@ class: chapter-slide
 
 ### Plots and bar plots 
 
-```{r, fig.align='center', fig.width=10, fig.height =5, fig.alt="Plot of the staged event tree for the simulated Lefrancq 2021 data on the left and bar plot for the probabilities of death given the history of the patient for the three stages learnt."}
+```{r, fig.align='center', fig.width=10, fig.height =5, fig.alt="On the left plot of the staged event tree for the simulated Lefrancq 2021 data. On the right the bar plot for the probabilities of death given the history of the patient for the three stages learnt."}
 par(mfrow = c(1,2))
 plot(model, col = \(s) viridis(length(s)))
 barplot(model, var = "Death", col = \(s) viridis(length(s)), 
@@ -374,9 +375,13 @@ compare_stages(model, model2)
 hamming_stages(model, model2)
 ```
 
-```{r}
-res <- inclusions_stages(model, model2) 
-res$ICU
+```{r, eval=FALSE}
+## not evaluated because 
+## of lack of space
+
+inclusions_stages(model, model2) 
+
+diff_stages(model, model2)
 ```
 ]
 
@@ -385,7 +390,7 @@ res$ICU
 ## NEW in v2.2.0
 ## context specific 
 ## interventional discrepancy
-cid(model, model2)$cid
+cid(model, model1)$cid
 ```
 
 <small> 
@@ -410,8 +415,7 @@ prob(model, c(ICU = "yes"),
 
 .pull-right[
 ```{r}
-confint(model, "ICU")
-
+confint(model, "ICU") |> head()
 ```
 ]
 
@@ -435,5 +439,25 @@ lr_test(join_stages(model, "ICU", "1", "2"), model)
 ```
 ---
 
+.center[
+### thank you for your attention!
+]
+
+`stagedtrees` package is available on [CRAN](https://cran.r-project.org/package=stagedtrees) and [github](https://github.com/gherardovarando/stagedtrees)
+under MIT license
+
+[![stagedtrees](https://www.r-pkg.org/badges/version/stagedtrees)](https://cran.r-project.org/package=stagedtrees)
+[![Build Status](https://travis-ci.com/gherardovarando/stagedtrees.svg?branch=main)](https://travis-ci.com/gherardovarando/stagedtrees)
+  [![R-CMD-check](https://github.com/gherardovarando/stagedtrees/workflows/R-CMD-check/badge.svg)](https://github.com/gherardovarando/stagedtrees/actions)
+ [![Coverage status](https://codecov.io/gh/gherardovarando/stagedtrees/branch/master/graph/badge.svg)](https://codecov.io/github/gherardovarando/stagedtrees?branch=main)
+ [![](https://cranlogs.r-pkg.org/badges/stagedtrees)](https://cran.r-project.org/package=stagedtrees)
 
 
+
+#### preprint 
+
+<small>
+F Carli, M Leonelli, E Riccomagno, G Varando, 
+_The R Package stagedtrees for Structural Learning of Stratified Staged Trees_, 
+2020 https://arxiv.org/abs/2004.06459
+</small>
