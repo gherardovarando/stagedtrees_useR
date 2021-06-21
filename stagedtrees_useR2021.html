@@ -50,7 +50,7 @@ class: chapter-slide
 * `\(X = (X_1, \ldots, X_n)\)` categorical
 * `\(P(X) = \prod_{i=1}^n P(X_i| X_{1:(i-1)})\)`
 * such event tree is called `\(X\)`-compatible 
-* if two nodes at the same depth have the same color then 
+* if two nodes **at the same depth** have the same color then 
 the associated conditional probabilities are equal `\(P(\texttt{Survived}|\texttt{Crew, Adult})\)` 
 `\(= P(\texttt{Survived}|\texttt{3d, Adult})\)`
 * chain event graphs are an equivalent, (sometimes) more compact, 
@@ -109,7 +109,9 @@ algorithm for learning the stages structure.
 ]
 ]
 
-
+&lt;small&gt;
+F Carli, M Leonelli, E Riccomagno, G Varando, The R Package stagedtrees for Structural Learning of Stratified Staged Trees, 2020, https://arxiv.org/abs/2004.06459. 
+&lt;/small&gt;
 
 ---
 
@@ -240,7 +242,7 @@ head(simLefrancq2021)
 
 
 
-&lt;small&gt;1: The code to simulate the data is available in the [Rmarkdown](). &lt;/small&gt;
+&lt;small&gt;1: The code to simulate the data is available in the [Rmarkdown](stagedtrees_useR2021.Rmd). &lt;/small&gt;
 
 &lt;small&gt; Lefrancq N., J. Paireau, N. Hozé, N. Courtejoie, Y. Yazdanpanah, 
 L. Bouadma, P.Y. Boëlle, F. Chereau, H. Salje, S. Cauchemez,
@@ -422,28 +424,17 @@ class: chapter-slide
 # Plots, compare, inference
 ---
 
-### Plots 
+### Plots and bar plots 
 
 
 ```r
-plot(model, cex_nodes = 3,  cex_label_edges = 2, 
-     col = \(s) viridis(length(s)))
-```
-
-&lt;img src="stagedtrees_useR2021_files/figure-html/unnamed-chunk-24-1.png" height="300px" style="display: block; margin: auto;" /&gt;
-
----
-
-### Bar plots 
-
-
-```r
+par(mfrow = c(1,2))
+plot(model, col = \(s) viridis(length(s)))
 barplot(model, var = "Death", col = \(s) viridis(length(s)), 
-        legend.text = TRUE,
-        main = "Death probability")
+        legend.text = TRUE, main = "Death probability")
 ```
 
-&lt;img src="stagedtrees_useR2021_files/figure-html/unnamed-chunk-25-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+&lt;img src="stagedtrees_useR2021_files/figure-html/unnamed-chunk-24-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 

@@ -52,7 +52,7 @@ plot(model, cex_nodes = 3, cex_label_edges = 2,
 * $X = (X_1, \ldots, X_n)$ categorical
 * $P(X) = \prod_{i=1}^n P(X_i| X_{1:(i-1)})$
 * such event tree is called $X$-compatible 
-* if two nodes at the same depth have the same color then 
+* if two nodes **at the same depth** have the same color then 
 the associated conditional probabilities are equal $P(\texttt{Survived}|\texttt{Crew, Adult})$ 
 $= P(\texttt{Survived}|\texttt{3d, Adult})$
 * chain event graphs are an equivalent, (sometimes) more compact, 
@@ -107,7 +107,9 @@ knitr::include_graphics("img/federico.jpeg")
 ]
 ]
 
-
+<small>
+F Carli, M Leonelli, E Riccomagno, G Varando, The R Package stagedtrees for Structural Learning of Stratified Staged Trees, 2020, https://arxiv.org/abs/2004.06459. 
+</small>
 
 ---
 
@@ -249,7 +251,7 @@ head(simLefrancq2021)
 
 
 
-<small>1: The code to simulate the data is available in the [Rmarkdown](). </small>
+<small>1: The code to simulate the data is available in the [Rmarkdown](stagedtrees_useR2021.Rmd). </small>
 
 <small> Lefrancq N., J. Paireau, N. Hozé, N. Courtejoie, Y. Yazdanpanah, 
 L. Bouadma, P.Y. Boëlle, F. Chereau, H. Salje, S. Cauchemez,
@@ -346,21 +348,13 @@ class: chapter-slide
 # Plots, compare, inference
 ---
 
-### Plots 
+### Plots and bar plots 
 
-```{r, out.height="300px", fig.align='center'}
-plot(model, cex_nodes = 3,  cex_label_edges = 2, 
-     col = \(s) viridis(length(s)))
-```
-
----
-
-### Bar plots 
-
-```{r, out.height = "400px", fig.align='center'}
+```{r, fig.align='center', fig.width=10, fig.height =5}
+par(mfrow = c(1,2))
+plot(model, col = \(s) viridis(length(s)))
 barplot(model, var = "Death", col = \(s) viridis(length(s)), 
-        legend.text = TRUE,
-        main = "Death probability")
+        legend.text = TRUE, main = "Death probability")
 ```
 
 ---
