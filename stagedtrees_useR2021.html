@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>The R Package stagedtrees for Structural Learning of Stratified Staged Trees</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Gherardo Varando  (joint work with F. Carli, E. Riccomagno, M. Leonelli) " />
+    <script src="libs/header-attrs-2.8/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/useR.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/useR-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href=" custom.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# The R Package stagedtrees for Structural Learning of Stratified Staged Trees
+### Gherardo Varando <small> (joint work with F. Carli, E. Riccomagno, M. Leonelli) </small>
+
+---
+
+
+
+
+class: chapter-slide
+# Staged Event Trees
+
+---
+
+## Event Trees 
+.pull-left[
+&lt;img src="stagedtrees_useR2021_files/figure-html/unnamed-chunk-2-1.png" width="100%" /&gt;
+]
+.pull-right[
+* `\(X = (X_1, \ldots, X_n)\)` categorical
+* `\(P(X) = \prod_{i=1}^n P(X_i| X_{1:(i-1)})\)`
+* such event tree is called `\(X\)`-compatible 
+]
+---
+
+## &lt;span class="red"&gt; Staged &lt;/span&gt; Event Trees 
+
+.pull-left[
+
+&lt;img src="stagedtrees_useR2021_files/figure-html/unnamed-chunk-3-1.png" width="100%" /&gt;
+
+]
+
+.pull-right[
+
+* `\(X = (X_1, \ldots, X_n)\)` categorical
+* `\(P(X) = \prod_{i=1}^n P(X_i| X_{1:(i-1)})\)`
+* such event tree is called `\(X\)`-compatible 
+* if two nodes at the same depth have the same color then 
+the associated conditional probabilities are equal `\(P(\texttt{Survived}|\texttt{Crew, Adult})\)` 
+`\(= P(\texttt{Survived}|\texttt{3d, Adult})\)`
+* chain event graphs are an equivalent, (sometimes) more compact, 
+  representation of the same models
+]
+
+
+.normal[
+&lt;small&gt;
+Collazo R. A., Görgen C. and Smith J. Q. Chain event graphs. _CRC Press_, 2018.
+
+Barclay L. M., Hutton J. L. and Smith J. Q. Refining a Bayesian network using a chain event graph. _International Journal of Approximate Reasoning_, vol. 54, pp. 1300-1309, 2013.
+
+&lt;/small&gt;
+]
+---
+
+### Why the `stagedtrees` package?
+
+
+* The `ceg` R package implementing staged trees and CEGs is available on CRAN, but
+it is not actively maintained (last updated in 2017) and contains a single 
+algorithm for learning the stages structure.
+
+* We started implementing the package at the end of 2018 and after discussions 
+  at the 1st UK Workshop on Probabilistic Reasoning Using CEGs (7-8/02/2019),
+  we decided that an implementation of staged trees was essential to 
+  foster research in the field. 
+  
+### Authors
+
+.grid4[
+.tiny[
+&lt;div class="figure"&gt;
+&lt;img src="img/gherardo.JPG" alt="Picture of Gherardo Varando, author and maintainer of the stagedtrees package" width="50%" /&gt;
+&lt;p class="caption"&gt;G. Varando (UV)&lt;/p&gt;
+&lt;/div&gt;
+]
+.tiny[
+&lt;div class="figure"&gt;
+&lt;img src="img/DSC_0220_00001.jpg" alt="Picture of Manuele Leonelli, author of the stagedtrees package" width="50%" /&gt;
+&lt;p class="caption"&gt;M. Leonelli (IE Madrid)&lt;/p&gt;
+&lt;/div&gt;
+]
+.tiny[
+&lt;div class="figure"&gt;
+&lt;img src="img/riccomagno.jpg" alt="Picture of Eva Riccomagno, author of the stagedtrees package" width="50%" /&gt;
+&lt;p class="caption"&gt;E. Riccomagno (UNIGE)&lt;/p&gt;
+&lt;/div&gt;
+]
+.tiny[
+&lt;div class="figure"&gt;
+&lt;img src="img/federico.jpeg" alt="Picture of Federico Carli, author of the stagedtrees package" width="50%" /&gt;
+&lt;p class="caption"&gt;F. Carli (UNIGE)&lt;/p&gt;
+&lt;/div&gt;
+]
+]
+
+
+
+---
+
+## The `sevt` class
+
+
+```r
+model
+```
+
+```
+## Staged event tree (fitted) 
+## Class[4] -&gt; Age[2] -&gt; Survived[2]  
+## 'log Lik.' -4440.797 (df=11)
+```
+
+
+.pull-left[
+
+```r
+model$tree
+```
+
+```
+## $Class
+## [1] "1st"  "2nd"  "3rd"  "Crew"
+## 
+## $Age
+## [1] "Child" "Adult"
+## 
+## $Survived
+## [1] "No"  "Yes"
+```
+
+]
+
+.pull-right[
+
+```r
+model$stages
+```
+
+```
+## $Age
+## [1] "1" "3" "3" "4"
+## 
+## $Survived
+## [1] "3"          "2"          "3"          "5"          "5"         
+## [6] "8"          "UNOBSERVED" "8"
+```
+
+
+```r
+model$prob$Age$`1`
+```
+
+```
+##      Child      Adult 
+## 0.01846154 0.98153846 
+## attr(,"n")
+## [1] 325
+```
+]
+
+---
+## Initialize a `sevt` object
+
+The `sevt` constructor can be used but it will output a not-fitted model.
+Instead the `full` or `indep` wrappers can be used, which will also isolate 
+unobserved situations.
+
+
+```r
+## saturated model 
+## where all nodes are in different stages
+full(Titanic, order = c("Age", "Class", "Survived")) 
+```
+
+```
+## Staged event tree (fitted) 
+## Age[2] -&gt; Class[4] -&gt; Survived[2]  
+## 'log Lik.' -4439.883 (df=15)
+```
+
+```r
+## fully independent model 
+## where all nodes at same depth are in the same stage
+indep(Titanic, join_unobserved = FALSE)
+```
+
+```
+## Staged event tree (fitted) 
+## Class[4] -&gt; Sex[2] -&gt; Age[2] -&gt; Survived[2]  
+## 'log Lik.' -5773.349 (df=6)
+```
+
+---
+class: chapter-slide
+# Learning the stages structure
+
+---
+
+
+
+### Data on covid patients
+
+We consider data simulated from a full staged event tree manually specified&lt;sup&gt;1&lt;/sup&gt;
+using the conditional probabilities from Lefrancq et al. (2021) describing
+ICU admission probabilities and survival rates for covid patients in France
+conditional on age and sex. An event tree with order `Sex`, `Age`, `ICU`, 
+`Death` naturally describes the data.
+
+
+```r
+head(simLefrancq2021)
+```
+
+```
+##      Sex   Age ICU Death
+## 1   Male 50-59 yes    no
+## 2 Female 60-69 yes    no
+## 3 Female   80+  no    no
+## 4   Male 70-79  no    no
+## 5 Female 70-79 yes   yes
+## 6 Female 60-69  no    no
+```
+
+
+
+
+&lt;small&gt;1: The code to simulate the data is available in the [Rmarkdown](). &lt;/small&gt;
+
+&lt;small&gt; Lefrancq N., J. Paireau, N. Hozé, N. Courtejoie, Y. Yazdanpanah, 
+L. Bouadma, P.Y. Boëlle, F. Chereau, H. Salje, S. Cauchemez,
+_Evolution of outcomes for patients hospitalised during the first 9 months of the SARS-CoV-2 pandemic in France: A retrospective national surveillance data analysis_,
+The Lancet Regional Health - Europe, Volume 5,
+2021, https://doi.org/10.1016/j.lanepe.2021.100087. &lt;/small&gt;
+---
+
+
+```r
+full_model &lt;- full(simLefrancq2021)
+```
+
+#### Score methods 
+
+```r
+## backward hill-climbing
+stages_bhc(full_model, score = \(x) -AIC(x))
+```
+
+```
+## Staged event tree (fitted) 
+## Sex[2] -&gt; Age[6] -&gt; ICU[2] -&gt; Death[2]  
+## 'log Lik.' -31906.82 (df=28)
+```
+
+```r
+## fast backward hill-climbing
+stages_fbhc(full_model)
+```
+
+```
+## Staged event tree (fitted) 
+## Sex[2] -&gt; Age[6] -&gt; ICU[2] -&gt; Death[2]  
+## 'log Lik.' -31935.61 (df=21)
+```
+
+```r
+## hill-climbing
+stages_hc(full_model)
+```
+
+```
+## Staged event tree (fitted) 
+## Sex[2] -&gt; Age[6] -&gt; ICU[2] -&gt; Death[2]  
+## 'log Lik.' -31914.47 (df=25)
+```
+
+---
+
+#### Clustering methods
+
+
+```r
+stages_bj(full_model, distance = "kullback", thr = 0.01)
+```
+
+```
+## Staged event tree (fitted) 
+## Sex[2] -&gt; Age[6] -&gt; ICU[2] -&gt; Death[2]  
+## 'log Lik.' -31906.99 (df=29)
+```
+
+```r
+stages_hclust(full_model, k = 2)
+```
+
+```
+## Staged event tree (fitted) 
+## Sex[2] -&gt; Age[6] -&gt; ICU[2] -&gt; Death[2]  
+## 'log Lik.' -32321.39 (df=15)
+```
+
+```r
+stages_kmeans(full_model, k = 3, algorithm = "Hartigan-Wong")
+```
+
+```
+## Staged event tree (fitted) 
+## Sex[2] -&gt; Age[6] -&gt; ICU[2] -&gt; Death[2]  
+## 'log Lik.' -32011.78 (df=17)
+```
+
+---
+
+
+```r
+model &lt;- full(simLefrancq2021) |&gt; stages_bhc(scope = c("Age")) |&gt;
+    stages_kmeans(scope = c("ICU", "Death"), k = 3) |&gt; print()
+```
+
+```
+## Staged event tree (fitted) 
+## Sex[2] -&gt; Age[6] -&gt; ICU[2] -&gt; Death[2]  
+## 'log Lik.' -32011.78 (df=17)
+```
+.center[
+![](stagedtrees_useR2021_files/figure-html/unnamed-chunk-19-1.png)&lt;!-- --&gt;
+]
+
+---
+
+### Search optimal order
+
+Implementation of the dynamic programming approach in 
+Silander and Leong (2013).
+
+
+```r
+search_best(simLefrancq2021, alg = stages_bhc)
+```
+
+```
+## Staged event tree (fitted) 
+## Age[6] -&gt; ICU[2] -&gt; Sex[2] -&gt; Death[2]  
+## 'log Lik.' -31922.17 (df=18)
+```
+
+plus a simple greedy heuristic
+
+
+```r
+search_greedy(simLefrancq2021, alg = stages_kmeans)
+```
+
+```
+## Staged event tree (fitted) 
+## Death[2] -&gt; ICU[2] -&gt; Sex[2] -&gt; Age[6]  
+## 'log Lik.' -32270.56 (df=15)
+```
+
+&lt;small&gt; 
+Silander T., Leong TY. _A Dynamic Programming Algorithm for Learning Chain Event Graphs._ In: Fürnkranz J., Hüllermeier E., Higuchi T. (eds) Discovery Science. DS 2013. Lecture Notes in Computer Science, vol 8140. Springer, Berlin, Heidelberg. 2013.
+&lt;/small&gt;
+---
+
+### Conversion from/to BNs 
+
+Every Bayesian Network can be represented as a staged event tree. 
+
+
+```r
+bnlearn::mmhc(simLefrancq2021) |&gt; 
+    bnlearn::bn.fit(data = simLefrancq2021) |&gt;
+*   as_sevt()
+```
+
+```
+## Staged event tree 
+## Age[6] -&gt; ICU[2] -&gt; Sex[2] -&gt; Death[2]
+```
+
+Moreover, we implemented an algorithm to convert a staged event tree 
+into a (minimal) BN:
+
+
+```r
+full(simLefrancq2021) |&gt; stages_kmeans(k=3) |&gt; 
+*   as_parentslist()
+```
+
+```
+## Context specific and/or local partial independences detected.
+```
+
+```
+## The input staged tree is not equivalent to a BN, 
+##             the minimal super-model is returned.
+```
+
+```
+##   [Sex][Age|Sex][ICU|(Age):{Sex}][Death|{ICU}:(Age):{Sex}]
+```
+
+---
+
+
+class: chapter-slide
+# Plots, compare, inference
+---
+
+### Plots 
+
+
+```r
+plot(model, cex_nodes = 3,  cex_label_edges = 2, 
+     col = \(s) viridis(length(s)))
+```
+
+&lt;img src="stagedtrees_useR2021_files/figure-html/unnamed-chunk-24-1.png" height="300px" style="display: block; margin: auto;" /&gt;
+
+---
+
+### Bar plots 
+
+
+```r
+barplot(model, var = "Death", col = \(s) viridis(length(s)), 
+        legend.text = TRUE,
+        main = "Death probability")
+```
+
+&lt;img src="stagedtrees_useR2021_files/figure-html/unnamed-chunk-25-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+---
+
+### Compare
+
+
+```r
+model2 &lt;- full(simLefrancq2021) |&gt; stages_kmeans()
+```
+
+.pull-left[
+
+```r
+compare_stages(model, model2)
+```
+
+```
+## [1] FALSE
+```
+
+
+```r
+hamming_stages(model, model2)
+```
+
+```
+## [1] 13
+```
+
+
+```r
+res &lt;- inclusions_stages(model, model2) 
+res$ICU
+```
+
+```
+##   model    model2
+## 1     2  &lt;      2
+## 2     1 !=      2
+## 4     1 !=      1
+## 8     3  &lt;      1
+```
+]
+
+.pull-right[
+
+```r
+## NEW in v2.2.0
+## context specific 
+## interventional discrepancy
+cid(model, model2)$cid
+```
+
+```
+## [1] 2
+```
+
+&lt;small&gt; 
+Leonelli M., Varando G. 
+Context-Specific Causal Discovery for Categorical Data Using Staged Trees https://arxiv.org/abs/2106.04416
+&lt;/small&gt;
+]
+---
+
+### Inference
+
+.pull-left[
+
+```r
+## marginal probability
+prob(model, c(Age = "40-49"))
+```
+
+```
+## [1] 0.0945
+```
+
+```r
+## conditional probability
+prob(model, c(ICU = "yes"), 
+     conditional_on = c(Age = "40-49"))
+```
+
+```
+## [1] 0.2399546
+```
+]
+
+.pull-right[
+
+```r
+confint(model, "ICU")
+```
+
+```
+##               2.5 %    97.5 %
+## ICU=yes|2 0.0445125 0.0599886
+## ICU=no|2  0.9400114 0.9554875
+## ICU=yes|1 0.1663329 0.1929298
+## ICU=no|1  0.8070702 0.8336671
+## ICU=yes|3 0.2811031 0.3108350
+## ICU=no|3  0.6891650 0.7188969
+```
+]
+
+.normal[
+
+```r
+## use the model to classify
+predict(model, class = "Death", newdata = simLefrancq2021[1:2,])
+```
+
+```
+##  1  2 
+## no no 
+## Levels: yes no
+```
+]
+
+
+---
+
+
+
+```r
+BIC(model, model2)
+```
+
+```
+##        df      BIC
+## model  17 64180.13
+## model2 15 64547.86
+```
+
+```r
+logLik(model)
+```
+
+```
+## 'log Lik.' -32011.78 (df=17)
+```
+
+```r
+lr_test(join_stages(model, "ICU", "1", "2"), model)
+```
+
+```
+## Likelihood-ratio test 
+## 
+## Sex[2] -&gt; Age[6] -&gt; ICU[2] -&gt; Death[2] 
+## Model 1: join_stages(model, "ICU", "1", "2")
+## Model 2: model
+##   #Df LogLik Df  Chisq Pr(&gt;Chisq)    
+## 1  16 -32144                         
+## 2  17 -32012  1 265.12  &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+---
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightLines": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

@@ -1,0 +1,26 @@
+.normal {
+    float: left;
+    width: 100%;
+}
+
+
+.red{
+    color: red;
+}
+
+
+.grid3{
+ display: grid;
+ grid-template-columns: auto auto auto;
+}
+
+
+.grid4{
+ display: grid;
+ grid-template-columns: 25% 25% 25% 25%;
+}
+
+.tiny{
+    font-size: 15px;
+}
+

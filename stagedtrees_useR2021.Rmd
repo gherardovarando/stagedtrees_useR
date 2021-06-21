@@ -1,0 +1,445 @@
+---
+title: "The R Package stagedtrees for Structural Learning of Stratified Staged Trees "
+author: "Gherardo Varando <small> (joint work with F. Carli, E. Riccomagno, M. Leonelli) </small>"
+output:
+  xaringan::moon_reader:
+      nature:
+         highlightLines: true
+      css: [useR, useR-fonts," custom.css"]
+      lib_dir: libs
+---
+
+```{r, echo=FALSE, message=FALSE}
+library(colorblindr)
+library(viridis)
+library(stagedtrees)
+```
+
+class: chapter-slide
+# Staged Event Trees
+
+---
+
+## Event Trees 
+.pull-left[
+```{r, echo=FALSE, out.width="100%", alt.text = "ahahghaghga"}
+plot(indep(Titanic, order = c("Class", "Age", "Survived")), cex_nodes = 3, pch = 1, cex_label_edges = 2, 
+     main = "Event tree for the Titanic data")
+```
+]
+.pull-right[
+* $X = (X_1, \ldots, X_n)$ categorical
+* $P(X) = \prod_{i=1}^n P(X_i| X_{1:(i-1)})$
+* such event tree is called $X$-compatible 
+]
+---
+
+## <span class="red"> Staged </span> Event Trees 
+
+.pull-left[
+
+```{r, echo=FALSE, out.width="100%", alt.text = "ahahghaghga"}
+model <- stages_bhc(full(Titanic, order = c("Class", "Age", "Survived")))
+plot(model, cex_nodes = 3, cex_label_edges = 2, 
+     col = \(x) viridis(length(x), option = "D"),
+     main = "Staged event tree for the Titanic data")
+```
+
+]
+
+.pull-right[
+
+* $X = (X_1, \ldots, X_n)$ categorical
+* $P(X) = \prod_{i=1}^n P(X_i| X_{1:(i-1)})$
+* such event tree is called $X$-compatible 
+* if two nodes at the same depth have the same color then 
+the associated conditional probabilities are equal $P(\texttt{Survived}|\texttt{Crew, Adult})$ 
+$= P(\texttt{Survived}|\texttt{3d, Adult})$
+* chain event graphs are an equivalent, (sometimes) more compact, 
+  representation of the same models
+]
+
+
+.normal[
+<small>
+Collazo R. A., Görgen C. and Smith J. Q. Chain event graphs. _CRC Press_, 2018.
+
+Barclay L. M., Hutton J. L. and Smith J. Q. Refining a Bayesian network using a chain event graph. _International Journal of Approximate Reasoning_, vol. 54, pp. 1300-1309, 2013.
+
+</small>
+]
+---
+
+### Why the `stagedtrees` package?
+
+
+* The `ceg` R package implementing staged trees and CEGs is available on CRAN, but
+it is not actively maintained (last updated in 2017) and contains a single 
+algorithm for learning the stages structure.
+
+* We started implementing the package at the end of 2018 and after discussions 
+  at the 1st UK Workshop on Probabilistic Reasoning Using CEGs (7-8/02/2019),
+  we decided that an implementation of staged trees was essential to 
+  foster research in the field. 
+  
+### Authors
+
+.grid4[
+.tiny[
+```{r, out.width="50%", echo=FALSE, fig.alt="Picture of Gherardo Varando, author and maintainer of the stagedtrees package", fig.cap = "G. Varando (UV)"}
+knitr::include_graphics("img/gherardo.JPG")
+```
+]
+.tiny[
+```{r, out.width="50%", echo=FALSE, fig.alt="Picture of Manuele Leonelli, author of the stagedtrees package", fig.cap = "M. Leonelli (IE Madrid)"}
+knitr::include_graphics("img/DSC_0220_00001.jpg")
+```
+]
+.tiny[
+```{r, out.width="50%", echo=FALSE, fig.alt="Picture of Eva Riccomagno, author of the stagedtrees package", fig.cap= "E. Riccomagno (UNIGE)"}
+knitr::include_graphics("img/riccomagno.jpg")
+```
+]
+.tiny[
+```{r, out.width="50%", echo=FALSE, fig.alt="Picture of Federico Carli, author of the stagedtrees package", fig.cap= "F. Carli (UNIGE)"}
+knitr::include_graphics("img/federico.jpeg")
+```
+]
+]
+
+
+
+---
+
+## The `sevt` class
+
+```{r}
+model
+```
+
+
+.pull-left[
+```{r}
+model$tree
+```
+
+]
+
+.pull-right[
+```{r}
+model$stages
+```
+
+```{r}
+model$prob$Age$`1`
+```
+]
+
+---
+## Initialize a `sevt` object
+
+The `sevt` constructor can be used but it will output a not-fitted model.
+Instead the `full` or `indep` wrappers can be used, which will also isolate 
+unobserved situations.
+
+```{r}
+## saturated model 
+## where all nodes are in different stages
+full(Titanic, order = c("Age", "Class", "Survived")) 
+
+## fully independent model 
+## where all nodes at same depth are in the same stage
+indep(Titanic, join_unobserved = FALSE)
+```
+
+---
+class: chapter-slide
+# Learning the stages structure
+
+---
+
+```{r, echo = FALSE, message = FALSE}
+data_model <- sevt(list(Sex = c("Female", "Male"),
+                        Age = c("0-39", "40-49", "50-59", "60-69",
+                                "70-79", "80+"),
+                        ICU = c("yes", "no"),
+                        Death = c("yes", "no")
+                        ), full = TRUE)
+data_model$prob <- list()
+data_model$prob$Sex <- list('1' = c(Female = 0.45, Male = 0.55))
+
+# loosely inspired by Trajectories of Hospitalization in COVID-19 Patients:An Observational Study in France
+dist_age_female <- c(0.04,   # 0 - 39
+                     0.10,   # 40 - 49
+                     0.12,   # 50 - 59
+                     0.20,   # 60 - 69
+                     0.21,   # 70 - 79
+                     0.33)   # 80+
+
+dist_age_male <-   c(0.07,   # 0 - 39
+                     0.09,   # 40 - 49
+                     0.15,   # 50 - 59
+                     0.18,   # 60 - 69
+                     0.24,   # 70 - 79
+                     0.27)   # 80+
+
+names(dist_age_male) <- data_model$tree$Age
+names(dist_age_female) <- data_model$tree$Age
+data_model$prob$Age <- list('1' = dist_age_female,
+                            '2' = dist_age_male)
+data_model$prob$ICU <- list(
+  '1' = c(yes = 0.125, no = 1-0.125), #Female 0-39
+  '2' = c(yes = 0.149, no = 1-0.149), #Female 40-49
+  '3' = c(yes = 0.193, no = 1-0.193), #Female 50-59
+  '4' = c(yes = 0.225, no = 1-0.225), #Female 60-69
+  '5' = c(yes = 0.175, no = 1-0.175), #Female 70-79
+  '6' = c(yes = 0.037, no = 1-0.037), #Female 80+
+  '7' = c(yes = 0.197, no = 1-0.197), #Male 0-39
+  '8' = c(yes = 0.2687, no = 1-0.2687), #Male 40-49
+  '9' = c(yes = 0.3171, no = 1-0.3171), #Male 50-59
+  '10' = c(yes = 0.3415, no = 1-0.3415), #Male 60-69
+  '11' = c(yes = 0.274, no = 1-0.274), #Male 70-79
+  '12' = c(yes = 0.073, no = 1-0.073) #Male 80+
+)
+data_model$prob$Death <- list(
+################### FEMALE ################################
+  '1'  = c(yes = 0.077, no = 1 - 0.077),  #Female 0-39 ICU
+  '2'  = c(yes = 0.004, no = 1 - 0.004),  #Female 0-39 no-ICU
+  '3'  = c(yes = 0.117, no = 1 - 0.117),  #Female 40-49 ICU
+  '4'  = c(yes = 0.017, no = 1 - 0.017),  #Female 40-49 no-ICU
+  '5'  = c(yes = 0.185, no = 1 - 0.185),  #Female 50-59 ICU
+  '6'  = c(yes = 0.030, no = 1 - 0.030),    #Female 50-59 no-ICU
+  '7'  = c(yes = 0.239, no = 1 - 0.239),  #Female 60-69 ICU
+  '8'  = c(yes = 0.058, no = 1 - 0.058),  #Female 60-69 no-ICU
+  '9'  = c(yes = 0.324, no = 1 - 0.324),  #Female 70-79 ICU
+  '10' = c(yes = 0.124, no = 1 - 0.124), #Female 70-79 no-ICU
+  '11' = c(yes = 0.454, no = 1 - 0.454), #Female 80+ ICU
+  '12' = c(yes = 0.266, no = 1 - 0.266), #Female 80+ no-ICU
+  ################# MALE ##################################
+  '13' = c(yes = 0.079, no = 1 - 0.079),  #Male 0-39 ICU
+  '14' = c(yes = 0.008, no = 1 - 0.008),  #Male 0-39 no-ICU
+  '15' = c(yes = 0.098, no = 1 - 0.098),  #Male 40-49 ICU
+  '16' = c(yes = 0.016, no = 1 - 0.016),  #Male 40-49 no-ICU
+  '17' = c(yes = 0.171, no = 1 - 0.171),  #Male 50-59 ICU
+  '18' = c(yes = 0.030, no = 1 - 0.030),  #Male 50-59 no-ICU
+  '19' = c(yes = 0.278, no = 1 - 0.278),  #Male 60-69 ICU
+  '20' = c(yes = 0.067, no = 1 - 0.067),  #Male 60-69 no-ICU
+  '21' = c(yes = 0.383, no = 1 - 0.383),  #Male 70-79 ICU
+  '22' = c(yes = 0.150, no = 1 - 0.150), #Male 70-79 no-ICU
+  '23' = c(yes = 0.478, no = 1 - 0.478),  #Male 80+ ICU
+  '24' = c(yes = 0.363, no = 1 - 0.363)  #Male 80+ no-ICU
+)
+
+set.seed(2021)
+simLefrancq2021 <- sample_from(data_model, 10000)
+```
+
+### Data on covid patients
+
+We consider data simulated from a full staged event tree manually specified<sup>1</sup>
+using the conditional probabilities from Lefrancq et al. (2021) describing
+ICU admission probabilities and survival rates for covid patients in France
+conditional on age and sex. An event tree with order `Sex`, `Age`, `ICU`, 
+`Death` naturally describes the data.
+
+```{r}
+head(simLefrancq2021)
+```
+
+
+
+
+<small>1: The code to simulate the data is available in the [Rmarkdown](). </small>
+
+<small> Lefrancq N., J. Paireau, N. Hozé, N. Courtejoie, Y. Yazdanpanah, 
+L. Bouadma, P.Y. Boëlle, F. Chereau, H. Salje, S. Cauchemez,
+_Evolution of outcomes for patients hospitalised during the first 9 months of the SARS-CoV-2 pandemic in France: A retrospective national surveillance data analysis_,
+The Lancet Regional Health - Europe, Volume 5,
+2021, https://doi.org/10.1016/j.lanepe.2021.100087. </small>
+---
+
+```{r}
+full_model <- full(simLefrancq2021)
+```
+
+#### Score methods 
+```{r}
+## backward hill-climbing
+stages_bhc(full_model, score = \(x) -AIC(x))
+
+## fast backward hill-climbing
+stages_fbhc(full_model)
+
+## hill-climbing
+stages_hc(full_model)
+```
+
+---
+
+#### Clustering methods
+
+```{r}
+stages_bj(full_model, distance = "kullback", thr = 0.01)
+
+stages_hclust(full_model, k = 2)
+
+stages_kmeans(full_model, k = 3, algorithm = "Hartigan-Wong")
+```
+
+---
+
+```{r}
+model <- full(simLefrancq2021) |> stages_bhc(scope = c("Age")) |>
+    stages_kmeans(scope = c("ICU", "Death"), k = 3) |> print()
+```
+.center[
+```{r, echo = FALSE}
+plot(model, cex_nodes = 3, cex_label_edges = 1.5, 
+     col = \(x) viridis(length(x), option = "D"))
+```
+]
+
+---
+
+### Search optimal order
+
+Implementation of the dynamic programming approach in 
+Silander and Leong (2013).
+
+```{r}
+search_best(simLefrancq2021, alg = stages_bhc)
+```
+
+plus a simple greedy heuristic
+
+```{r}
+search_greedy(simLefrancq2021, alg = stages_kmeans)
+```
+
+<small> 
+Silander T., Leong TY. _A Dynamic Programming Algorithm for Learning Chain Event Graphs._ In: Fürnkranz J., Hüllermeier E., Higuchi T. (eds) Discovery Science. DS 2013. Lecture Notes in Computer Science, vol 8140. Springer, Berlin, Heidelberg. 2013.
+</small>
+---
+
+### Conversion from/to BNs 
+
+Every Bayesian Network can be represented as a staged event tree. 
+
+```{r}
+bnlearn::mmhc(simLefrancq2021) |> 
+    bnlearn::bn.fit(data = simLefrancq2021) |>
+    as_sevt() #<<
+```
+
+Moreover, we implemented an algorithm to convert a staged event tree 
+into a (minimal) BN:
+
+```{r}
+full(simLefrancq2021) |> stages_kmeans(k=3) |> 
+    as_parentslist() #<<
+```
+
+---
+
+
+class: chapter-slide
+# Plots, compare, inference
+---
+
+### Plots 
+
+```{r, out.height="300px", fig.align='center'}
+plot(model, cex_nodes = 3,  cex_label_edges = 2, 
+     col = \(s) viridis(length(s)))
+```
+
+---
+
+### Bar plots 
+
+```{r, out.height = "400px", fig.align='center'}
+barplot(model, var = "Death", col = \(s) viridis(length(s)), 
+        legend.text = TRUE,
+        main = "Death probability")
+```
+
+---
+
+### Compare
+
+```{r}
+model2 <- full(simLefrancq2021) |> stages_kmeans()
+```
+
+.pull-left[
+```{r}
+compare_stages(model, model2)
+```
+
+```{r}
+hamming_stages(model, model2)
+```
+
+```{r}
+res <- inclusions_stages(model, model2) 
+res$ICU
+```
+]
+
+.pull-right[
+```{r}
+## NEW in v2.2.0
+## context specific 
+## interventional discrepancy
+cid(model, model2)$cid
+```
+
+<small> 
+Leonelli M., Varando G. 
+Context-Specific Causal Discovery for Categorical Data Using Staged Trees https://arxiv.org/abs/2106.04416
+</small>
+]
+---
+
+### Inference
+
+.pull-left[
+```{r}
+## marginal probability
+prob(model, c(Age = "40-49"))
+
+## conditional probability
+prob(model, c(ICU = "yes"), 
+     conditional_on = c(Age = "40-49"))
+```
+]
+
+.pull-right[
+```{r}
+confint(model, "ICU")
+
+```
+]
+
+.normal[
+```{r}
+## use the model to classify
+predict(model, class = "Death", newdata = simLefrancq2021[1:2,])
+```
+]
+
+
+---
+
+
+```{r}
+BIC(model, model2)
+
+logLik(model)
+
+lr_test(join_stages(model, "ICU", "1", "2"), model)
+```
+---
+
+
+
